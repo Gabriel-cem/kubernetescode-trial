@@ -1,4 +1,11 @@
-node {
+pipeline {
+    
+    agent {
+        kubernetes {
+            label 'docker-agent'
+            defaultContainer 'docker'
+        }
+    }
 
     def app
 
