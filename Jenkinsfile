@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE = 'gabcem/test'
         DOCKER_TAG = "${env.BUILD_NUMBER}"
         REGISTRY_CREDENTIALS = credentials('dockerhub')
-        GIT_CREDENTIALS = credentials('jenkinstoken')
+        GIT_CREDENTIALS = credentials('jenkins-ssh')
     }
 
     stages {
