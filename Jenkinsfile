@@ -15,24 +15,6 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh "docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} ."
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    docker.withRegistry('', "${env.REGISTRY_CREDENTIALS}") {
-                        sh "docker push ${DOCKER_IMAGE}:${DOCKER_TAG}"
-                    }
-                }
-            }
-        }
-
         stage('Update Kubernetes Manifests') {
             steps {
                 script {
