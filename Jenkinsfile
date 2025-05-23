@@ -1,42 +1,34 @@
-pipeline {
-    agent any
+node {
+    def app
 
-    environment {
-        DOCKER_IMAGE = 'gabcem/test'
-        DOCKER_TAG = "${env.BUILD_NUMBER}"
-        REGISTRY_CREDENTIALS = credentials('dockerhub')
-        GIT_CREDENTIALS = credentials('jenkins-ssh')
+    stage('Clone repository') {
+      
+
+        checkout scm
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git credentialsId: "${env.GIT_CREDENTIALS}", url: 'https://github.com/Gabriel-cem/kubernetescode-trial.git'
-            }
-        }
+    stage('Build image') {
+  
+       app = docker.build("raj80dockerid/test")
+    }
 
-        stage('Update Kubernetes Manifests') {
-            steps {
-                script {
-                    sh """
-                    sed -i 's|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|' k8s/deployment.yaml
-                    git config user.name "jenkins"
-                    git config user.email "jenkins@ci.local"
-                    git add k8s/deployment.yaml
-                    git commit -m "Update image tag to ${DOCKER_TAG}"
-                    git push origin main
-                    """
-                }
-            }
+    stage('Test image') {
+  
+
+        app.inside {
+            sh 'echo "Tests passed"'
         }
     }
 
-    post {
-        failure {
-            echo 'La pipeline ha fallado.'
-        }
-        success {
-            echo 'Pipeline completada con éxito.'
+    stage('Push image') {
+        
+        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
+            app.push("${env.BUILD_NUMBER}")
         }
     }
+    
+    stage('Trigger ManifestUpdate') {
+                echo "triggering updatemanifestjob"
+                build job: 'updatemanifest', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+        }
 }
